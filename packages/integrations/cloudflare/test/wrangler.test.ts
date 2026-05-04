@@ -63,10 +63,9 @@ describe('cloudflareConfigCustomizer', () => {
 				kv_namespaces: [{ binding: 'OTHER_KV', id: 'other-id' }],
 			});
 
-			assert.deepEqual(result.kv_namespaces, [
-				{ binding: 'OTHER_KV', id: 'other-id' },
-				{ binding: DEFAULT_SESSION_KV_BINDING_NAME },
-			]);
+			// The customizer returns only the new binding; @cloudflare/vite-plugin's
+			// defu merge concatenates it with the user's existing kv_namespaces.
+			assert.deepEqual(result.kv_namespaces, [{ binding: DEFAULT_SESSION_KV_BINDING_NAME }]);
 		});
 
 		it('does not add SESSION binding when session KV binding is disabled', () => {
@@ -160,7 +159,7 @@ describe('cloudflareConfigCustomizer', () => {
 			assert.equal(result.previews?.images, undefined);
 		});
 
-		it('preserves existing previews KV bindings when adding SESSION binding', () => {
+		it('returns only the SESSION binding for previews when other KV bindings exist', () => {
 			const customizer = cloudflareConfigCustomizer();
 			const result = customizer({
 				previews: {
@@ -168,8 +167,9 @@ describe('cloudflareConfigCustomizer', () => {
 				},
 			});
 
+			// The customizer returns only the new binding; @cloudflare/vite-plugin's
+			// defu merge concatenates it with the user's existing kv_namespaces.
 			assert.deepEqual(result.previews?.kv_namespaces, [
-				{ binding: 'OTHER_KV', id: 'other-id' },
 				{ binding: DEFAULT_SESSION_KV_BINDING_NAME },
 			]);
 		});
